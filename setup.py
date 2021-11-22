@@ -8,4 +8,5 @@ setup(
     url='https://github.com/woodcockr/tljh-oea',
     entry_points={"tljh": ["oea = tljh_oea"]},
     py_modules=["tljh_oea"],
+    install_requires=['sh'],
 )
