@@ -20,28 +20,22 @@ $ docker run \
 $ docker exec -it tljh-dev /bin/bash
 
 $ python3 /srv/src/the-littlest-jupyterhub/bootstrap/bootstrap.py --admin admin --plugin /srv/src/tljh-oea
-
-$ service postgresql start
-$ update-rc.d postgresql enable
 ```
 
-As admin user:
-
+As root user:
 ```
 $ su postgres
 
 postgres$ psql
-
-postgres=# CREATE DATABASE datacube;
 postgres=# CREATE EXTENSION postgis;
+postgres=# CREATE DATABASE datacube;
+
 
 postgres=# quit
 
 
 postgres$ source /opt/tljh/user/bin/activate
-### Either create a temporary .datacube.conf or and ENV vars for DB_DATABASE. Sample datacube.conf further down.
-### comment out username and password whilst using the postgres superuser to initialise the database
-(base) postgres$ vim .datacube.conf
+(base) postgres$ export DB_DATABASE=datacube
 (base) postgres$ datacube -v system init
 Initialising database...
 Created.
@@ -55,7 +49,9 @@ postgres=# ALTER DATABASE datacube OWNER TO odc_db_admin;
 postgres=# quit
 ```
 
-datacube.conf:
+Login to Jupyter and create the ~/.datacube.conf file
+
+.datacube.conf:
 ```
 [datacube]
 db_database: datacube
@@ -66,8 +62,8 @@ db_hostname: localhost
 
 # Credentials are optional: you might have other Postgres authentication configured.
 # The default username otherwise is the current user id.
-# db_username: odc_db_user
-# db_password: anothersecurepassword
+db_username: odc_db_user
+db_password: anothersecurepassword
 
 [datacube-admin]
 db_database: datacube
@@ -78,8 +74,30 @@ db_hostname: localhost
 
 # Credentials are optional: you might have other Postgres authentication configured.
 # The default username otherwise is the current user id.
-# db_username: odc_db_admin
-# db_password: asecurepassword
+db_username: odc_db_admin
+db_password: asecurepassword
 
 ```
 
+## Add product definitionss to database
+
+```
+dc-sync-products /srv/src/tljh-oea/products.csv
+```
+## Index data via terminal
+```
+stac-to-dc \
+  --bbox='146.8,-36.3, 147.3, -35.8' \
+  --catalog-href='https://earth-search.aws.element84.com/v0/' \
+  --collections='sentinel-s2-l2a-cogs' \
+  --datetime='2021-06-01/2021-07-01'
+
+stac-to-dc \
+  --catalog-href=https://planetarycomputer.microsoft.com/api/stac/v1/ \
+  --collections='io-lulc'
+
+stac-to-dc \
+  --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' \
+  --collections='nasadem' \
+  --bbox='146.8,-36.3, 147.3, -35.8'
+``

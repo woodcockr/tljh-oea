@@ -1,6 +1,7 @@
 from tljh.hooks import hookimpl
 import sh
 
+
 @hookimpl
 def tljh_extra_user_pip_packages():
     return [
@@ -23,6 +24,17 @@ def tljh_extra_user_pip_packages():
         'odc-apps-cloud',
         'odc_ppt',
         'datacube-stats',
+        'gdal==3.3.2',
+        'folium',
+        'scipy',
+        'pandas==1.3.4',
+        'xarray',
+        'matplotlib==3.4.3',
+        'geopandas',
+        'scikit-image',
+        'tqdm',
+        'click<8.0.0',
+        'python-dateutil==2.7.5',
         # '--no-binary=Cython,rasterio,Shapely,pygeos,netCDF4,pyproj,fc,hdstats,lmdb,lxml,numexpr,pyzmq,msgpack,ruamel.yaml.clib,zstandard'
     ]
 
