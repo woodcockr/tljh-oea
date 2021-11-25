@@ -1,4 +1,12 @@
-# tljh-oea
+# tljh-oea docker compose version
+```
+$ cd ~/dev/oea/tljh-oea
+
+$ docker build -t tljh-systemd . -f Dockerfile
+```
+
+
+# tljh-oea plugin
 
 To use this in dev clone the tljh (https://github.com/jupyterhub/the-littlest-jupyterhub alongside this tljh-oea repo into a directory `oea`
 
@@ -100,4 +108,9 @@ stac-to-dc \
   --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' \
   --collections='nasadem' \
   --bbox='146.8,-36.3, 147.3, -35.8'
-``
+```
+
+# NOTES:
+
+hub python environment is at /opt/tljh/opt - this is where the tljh-oea plugin package is installed
+
