@@ -55,11 +55,6 @@ def tljh_post_install():
     time_range='2021-06-01/2021-07-01'
 
     # Start postgresql
-    # for docker dev this way
-    # update_rc_d = sh.Command("update-rc.d")
-    # update_rc_d("postgresql", "enable")
-    # sh.service("postgresql", "start")
-    # for vm this way
     sh.systemctl("enable", "postgresql")
     sh.service("postgresql", "restart")
 

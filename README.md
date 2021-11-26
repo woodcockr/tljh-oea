@@ -30,6 +30,14 @@ $ docker exec -it tljh-dev /bin/bash
 $ python3 /srv/src/the-littlest-jupyterhub/bootstrap/bootstrap.py --admin admin --plugin /srv/src/tljh-oea
 ```
 
+Install script for Cloud:
+```
+#!/bin/bash
+curl -L https://tljh.jupyter.org/bootstrap.py \
+  | sudo python3 - \
+    --admin admin:foobar223 --plugin git+https://github.com/woodcockr/tljh-oea
+```
+
 As root user:
 ```
 $ su postgres
