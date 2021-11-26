@@ -49,20 +49,42 @@ def tljh_post_install():
     This can be arbitrary Python code.
     """
     postgres_password = 'superPassword'
+    odc_db_admin_password = 'insecurePassword'
+    odc_db_user_password = 'worrysomePassword'
+    bbox='146.8,-36.3, 147.3, -35.8'
+    time_range='2021-06-01/2021-07-01'
+
+    # Start postgresql
+    update_rc_d = sh.Command("update-rc.d")
+    update_rc_d("postgresql", "enable")
     sh.service("postgresql", "start")
 
-    # TODO There is no doubt a simpler python way to achieve this outcome but as I am debugging this line by line
-    # TODO and its making its way to completion and I am lazy I will leave the refactor until later
-
     # Some guards in case running the install script repeatedly in same container. This will remove the database
-    sh.su("-", "postgres", "-c", "psql -c 'DROP DATABASE IF EXISTS datacube;'")
-    sh.su("-", "postgres", "-c", "psql -c 'DROP EXTENSION IF EXISTS postgis;'")
-    sh.su("-", "postgres", "-c", "psql -c 'CREATE EXTENSION postgis;'")
-    sh.su("-", "postgres", "-c", "psql -c 'CREATE DATABASE datacube;'")
-    # annoyingly the datacube system commands will require a postgres super user password
+    su_postgres = sh.su.bake("-", "postgres", "-c")
+
+    su_postgres("psql -c 'DROP DATABASE IF EXISTS datacube;'")
+    su_postgres("psql -c 'DROP EXTENSION IF EXISTS postgis;'")
+    su_postgres("psql -c 'DROP ROLE IF EXISTS odc_db_admin;'")
+    su_postgres("psql -c 'DROP ROLE IF EXISTS odc_db_user;'")
+
+    # Configure postgres and create datacube database
+    su_postgres("psql -c 'CREATE EXTENSION postgis;'")
+    su_postgres("psql -c 'CREATE DATABASE datacube;'")
+    # The datacube system commands will require a postgres super user password
     # and also the specification to use localhost for the database hostname
-    sh.su("-", "postgres", "-c", f"psql -c \"ALTER USER postgres PASSWORD \'{postgres_password}\';\"")
-    sh.su("-", "postgres", "-c", f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=postgres DB_PASSWORD={postgres_password} DB_DATABASE=datacube datacube -v system init")
+    su_postgres(f"psql -c \"ALTER USER postgres PASSWORD \'{postgres_password}\';\"")
+    su_postgres(f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=postgres DB_PASSWORD={postgres_password} DB_DATABASE=datacube datacube -v system init")
+    su_postgres(f"psql -c \"CREATE ROLE odc_db_admin WITH LOGIN IN ROLE agdc_admin, agdc_user ENCRYPTED PASSWORD \'{odc_db_admin_password}\';\"")
+    su_postgres(f"psql -c \"CREATE ROLE odc_db_user WITH LOGIN IN ROLE agdc_user ENCRYPTED PASSWORD \'{odc_db_user_password}\';\"")
+    su_postgres("psql -c 'ALTER DATABASE datacube OWNER TO odc_db_admin;'")
+
+    # initialise datacube database  default products
+    sh.bash("-c", f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=odc_db_admin DB_PASSWORD={odc_db_admin_password} DB_DATABASE=datacube dc-sync-products https://raw.githubusercontent.com/woodcockr/tljh-oea/main/products.csv")
+
+    # index default products
+    sh.bash("-c", f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=odc_db_admin DB_PASSWORD={odc_db_admin_password} DB_DATABASE=datacube stac-to-dc --bbox='{bbox}' --catalog-href='https://earth-search.aws.element84.com/v0/' --collections='sentinel-s2-l2a-cogs' --datetime='{time_range}'")
+    sh.bash("-c", f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=odc_db_admin DB_PASSWORD={odc_db_admin_password} DB_DATABASE=datacube stac-to-dc --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' --collections='io-lulc'")
+    sh.bash("-c", f"source /opt/tljh/user/bin/activate && DB_HOSTNAME=localhost DB_USERNAME=odc_db_admin DB_PASSWORD={odc_db_admin_password} DB_DATABASE=datacube stac-to-dc --bbox='{bbox}' --catalog-href='https://planetarycomputer.microsoft.com/api/stac/v1/' --collections='nasadem'")
 
 @hookimpl
 def tljh_config_post_install(config):
