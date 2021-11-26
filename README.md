@@ -5,7 +5,6 @@ $ cd ~/dev/oea/tljh-oea
 $ docker build -t tljh-systemd . -f Dockerfile
 ```
 
-
 # tljh-oea plugin
 
 To use this in dev clone the tljh (https://github.com/jupyterhub/the-littlest-jupyterhub alongside this tljh-oea repo into a directory `oea`
@@ -27,7 +26,7 @@ $ docker run \
 
 $ docker exec -it tljh-dev /bin/bash
 
-$ python3 /srv/src/the-littlest-jupyterhub/bootstrap/bootstrap.py --admin admin --plugin /srv/src/tljh-oea
+$ python3 /srv/src/the-littlest-jupyterhub/bootstrap/bootstrap.py --admin admin --plugin git+https://github.com/woodcockr/tljh-oea
 ```
 
 Install script for Cloud:
@@ -79,7 +78,7 @@ db_hostname: localhost
 # Credentials are optional: you might have other Postgres authentication configured.
 # The default username otherwise is the current user id.
 db_username: odc_db_user
-db_password: anothersecurepassword
+db_password: worrysomePassword
 
 [datacube-admin]
 db_database: datacube
@@ -91,11 +90,11 @@ db_hostname: localhost
 # Credentials are optional: you might have other Postgres authentication configured.
 # The default username otherwise is the current user id.
 db_username: odc_db_admin
-db_password: asecurepassword
+db_password: insecurePassword
 
 ```
 
-## Add product definitionss to database
+## Add product definitions to database
 
 ```
 dc-sync-products /srv/src/tljh-oea/products.csv
