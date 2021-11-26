@@ -55,9 +55,13 @@ def tljh_post_install():
     time_range='2021-06-01/2021-07-01'
 
     # Start postgresql
-    update_rc_d = sh.Command("update-rc.d")
-    update_rc_d("postgresql", "enable")
-    sh.service("postgresql", "start")
+    # for docker dev this way
+    # update_rc_d = sh.Command("update-rc.d")
+    # update_rc_d("postgresql", "enable")
+    # sh.service("postgresql", "start")
+    # for vm this way
+    sh.systemctl("enable", "postgresql")
+    sh.service("postgresql", "restart")
 
     # Some guards in case running the install script repeatedly in same container. This will remove the database
     su_postgres = sh.su.bake("-", "postgres", "-c")
